@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">lesson4.7</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="phote_number_hint">Введите номер</string>
+    <string name ="code_number_hint">Введите код</string>
+    <string name="get_code">Получить код</string>
+    <string name="resend_code">Отправить снова</string>
+    <string name="registration_title">Регистрация</string>
+    <string name="fill_field_error">Заполните поле</string>
+</resources>
