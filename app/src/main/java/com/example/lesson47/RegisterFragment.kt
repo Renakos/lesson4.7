@@ -187,4 +187,34 @@ class RegisterFragment : Fragment() {
         _binding = null
     }
 }
+class HomeFragment : Fragment(R.layout.fragment_home) {
 
+    private var _binding: FragmentHomeBinding? = null
+    private val binding: FragmentHomeBinding get() = _binding!!
+    private val adapter = Adapter()
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        binding.rv.adapter= adapter
+        adapter.setData(
+            listOf(
+                ItemModel(
+                    0,
+                    getString(R.string.n2d),
+                    getString(R.string.work),
+                    getString(R.string.n2d),
+                    getString(R.string.work)
+                )
+            ))
+        return binding.root
+    }
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
