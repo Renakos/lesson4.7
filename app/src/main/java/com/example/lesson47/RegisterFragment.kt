@@ -96,3 +96,95 @@ class RegisterFragment : Fragment() {
         _binding = null
     }
 }
+import androidx.navigation.fragment.findNavController
+
+class RegisterFragment : Fragment() {
+    private var _binding: FragmentRegisterBinding? = null
+    private val binding get() = _binding!!
+    private val auth = Firebase.auth
+    private lateinit var storedVerificationId: String
+    private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRegisterBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        verifyUserPhoneNumber()
+    }
+
+    private fun verifyUserPhoneNumber() = with(binding) {
+        btnSendCode.setOnClickListener {
+            val phoneNumber = etPhoneNumber.text.toString().trim()
+            if (validatePhoneNumber(phoneNumber)) {
+                val options = PhoneAuthOptions.newBuilder(auth)
+                    .setPhoneNumber(phoneNumber) // Phone number to verify
+                    .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
+                    .setActivity(requireActivity()) // Activity (for callback binding)
+                    .setCallbacks(callbacks) // OnVerificationStateChangedCallbacks
+                    .build()
+                PhoneAuthProvider.verifyPhoneNumber(options)
+            }
+        }
+    }
+
+    private fun validatePhoneNumber(phoneNumber: String): Boolean = with(binding) {
+        if (phoneNumber.isEmpty()) {
+            tilPhoneNumber.isErrorEnabled = true
+            tilPhoneNumber.error = getString(R.string.fill_field_error)
+            false
+        } else {
+            true
+        }
+    }
+
+    private val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+        override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+            Log.i("success", "onVerificationCompleted:$credential")
+            auth.signInWithCredential(credential)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        // Пользователь успешно аутентифицирован
+                        // Выполните дополнительные действия после успешной аутентификации
+                        // Пример: переход на HomeFragment
+                        findNavController().navigate(R.id.action_registerFragment_to_homeFragment)
+                    } else {
+                        // Ошибка аутентификации
+                        Log.e("failure", "signInWithCredential:failure", task.exception)
+                    }
+                }
+        }
+
+        override fun onVerificationFailed(e: FirebaseException) {
+            Log.e("failure", "onVerificationFailed", e)
+            if (e is FirebaseAuthInvalidCredentialsException) {
+                // Invalid request
+            } else if (e is FirebaseTooManyRequestsException) {
+                // The SMS quota for the project has been exceeded
+            } else if (e is FirebaseAuthMissingActivityForRecaptchaException) {
+                // reCAPTCHA verification attempted with null Activity
+            }
+            // Show a message and update the UI
+        }
+
+        override fun onCodeSent(
+            verificationId: String,
+            token: PhoneAuthProvider.ForceResendingToken
+        ) {
+            Log.d("code", "onCodeSent:$verificationId")
+            storedVerificationId = verificationId
+            resendToken = token
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+
